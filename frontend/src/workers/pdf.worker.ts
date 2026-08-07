@@ -14,7 +14,11 @@ self.onmessage = async (event: MessageEvent<PdfWorkerRequest>) => {
     switch (message.action) {
       case 'merge': {
         const result = await mergePdfs(message.files);
-        self.postMessage({ type: 'result', result });
+        if (result.success) {
+          self.postMessage({ type: 'result', result });
+        } else {
+          self.postMessage({ type: 'error', error: result.error });
+        }
         break;
       }
       case 'split': {
@@ -24,12 +28,20 @@ self.onmessage = async (event: MessageEvent<PdfWorkerRequest>) => {
       }
       case 'rotate': {
         const result = await rotatePdf(message.file, message.degreesToRotate);
-        self.postMessage({ type: 'result', result });
+        if (result.success) {
+          self.postMessage({ type: 'result', result });
+        } else {
+          self.postMessage({ type: 'error', error: result.error });
+        }
         break;
       }
       case 'compress': {
         const result = await compressPdf(message.file);
-        self.postMessage({ type: 'result', result });
+        if (result.success) {
+          self.postMessage({ type: 'result', result });
+        } else {
+          self.postMessage({ type: 'error', error: result.error });
+        }
         break;
       }
     }

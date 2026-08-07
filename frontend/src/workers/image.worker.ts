@@ -13,17 +13,29 @@ self.onmessage = async (event: MessageEvent<ImageWorkerRequest>) => {
     switch (message.action) {
       case 'convert': {
         const result = await convertImage(message.file, message.targetFormat, message.quality);
-        self.postMessage({ type: 'result', result });
+        if (result.success) {
+          self.postMessage({ type: 'result', result });
+        } else {
+          self.postMessage({ type: 'error', error: result.error });
+        }
         break;
       }
       case 'resize': {
         const result = await resizeImage(message.file, message.maxWidth, message.maxHeight);
-        self.postMessage({ type: 'result', result });
+        if (result.success) {
+          self.postMessage({ type: 'result', result });
+        } else {
+          self.postMessage({ type: 'error', error: result.error });
+        }
         break;
       }
       case 'compress': {
         const result = await compressImage(message.file, message.quality);
-        self.postMessage({ type: 'result', result });
+        if (result.success) {
+          self.postMessage({ type: 'result', result });
+        } else {
+          self.postMessage({ type: 'error', error: result.error });
+        }
         break;
       }
     }

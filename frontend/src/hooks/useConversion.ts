@@ -25,41 +25,52 @@ export function useConversion<TRequest, TResult>(
   const workerRef = useRef<Worker | null>(null);
 
   const runConversion = useCallback(
-    (request: TRequest) => {
-      setState({ status: 'processing', result: null, error: null });
+  (request: TRequest) => {
+    setState({ status: 'processing', result: null, error: null });
 
-      // Chiudi eventuali worker precedenti ancora attivi prima di crearne uno nuovo
-      workerRef.current?.terminate();
-      const worker = createWorker();
-      workerRef.current = worker;
+    workerRef.current?.terminate();
 
-      worker.onmessage = (event: MessageEvent) => {
-        const data = event.data;
+    let worker: Worker;
+    try {
+      worker = createWorker();
+    } catch (err) {
+      setState({
+        status: 'error',
+        result: null,
+        error: err instanceof Error ? err.message : 'Impossibile avviare il worker di conversione.',
+      });
+      return;
+    }
 
-        if (data.type === 'error') {
-          setState({ status: 'error', result: null, error: data.error });
-        } else {
-          setState({ status: 'success', result: data, error: null });
-        }
+    workerRef.current = worker;
 
-        worker.terminate();
-        workerRef.current = null;
-      };
+    worker.onmessage = (event: MessageEvent) => {
+      const data = event.data;
 
-      worker.onerror = (event: ErrorEvent) => {
-        setState({
-          status: 'error',
-          result: null,
-          error: event.message || 'Errore imprevisto nel worker.',
-        });
-        worker.terminate();
-        workerRef.current = null;
-      };
+      if (data.type === 'error') {
+        setState({ status: 'error', result: null, error: data.error });
+      } else {
+        setState({ status: 'success', result: data, error: null });
+      }
 
-      worker.postMessage(request);
-    },
-    [createWorker]
-  );
+      worker.terminate();
+      workerRef.current = null;
+    };
+
+    worker.onerror = (event: ErrorEvent) => {
+      setState({
+        status: 'error',
+        result: null,
+        error: event.message || 'Errore imprevisto nel worker.',
+      });
+      worker.terminate();
+      workerRef.current = null;
+    };
+
+    worker.postMessage(request);
+  },
+  [createWorker]
+);
 
   const reset = useCallback(() => {
     workerRef.current?.terminate();
