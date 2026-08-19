@@ -13,6 +13,22 @@ const mockedUsePdfConversion = usePdfConversion as jest.Mock;
 beforeAll(() => {
   global.URL.createObjectURL = jest.fn(() => 'blob:mock-url');
   global.URL.revokeObjectURL = jest.fn();
+
+  // jsdom non implementa sempre File.prototype.arrayBuffer() (a differenza
+  // dell'ambiente Node usato in pdf.test.ts, dove il File nativo ce l'ha di
+  // serie). getPdfPageCount(), chiamata realmente dal componente in questo
+  // test, ne ha bisogno per leggere i byte del PDF. FileReader è invece
+  // sempre disponibile in jsdom, quindi lo usiamo come polyfill minimo.
+  if (typeof File.prototype.arrayBuffer !== 'function') {
+    File.prototype.arrayBuffer = function (this: File): Promise<ArrayBuffer> {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as ArrayBuffer);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(this);
+      });
+    };
+  }
 });
 
 beforeEach(() => {

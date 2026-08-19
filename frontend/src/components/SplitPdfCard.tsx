@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DropZone } from './DropZone';
 import { ProgressIndicator } from './ProgressIndicator';
 import { SecurityBadge } from './SecurityBadge';
@@ -33,11 +33,14 @@ export function SplitPdfCard() {
   const [loadingPageCount, setLoadingPageCount] = useState(false);
   const [selectedPages, setSelectedPages] = useState<Set<number>>(new Set());
   const [downloadUrls, setDownloadUrls] = useState<{ url: string; fileName: string }[]>([]);
+  const EMPTY_RESULTS: ConversionResult[] = [];
 
   // Il worker, per l'azione 'split', invia { type: 'result', results: ConversionResult[] }
   // (plurale, a differenza delle altre azioni) — per questo non riusiamo ConversionCard.
-  const results: ConversionResult[] =
-    status === 'success' && result?.results ? result.results : [];
+  const results: ConversionResult[] = useMemo(
+    () => (status === 'success' && result?.results ? result.results : EMPTY_RESULTS),
+    [status, result]
+  );
 
   const handleFileSelected = useCallback(
     (files: File[]) => {

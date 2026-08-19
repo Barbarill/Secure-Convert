@@ -1,22 +1,24 @@
 import type { ConversionResult } from './types';
 
-type ImageFormat = 'image/jpeg' | 'image/png' | 'image/webp';
-type AnyCanvas = OffscreenCanvas | HTMLCanvasElement;
+const EXTENSIONS: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+};
 
-function isWorkerEnvironment(): boolean {
-  return typeof document === 'undefined' && typeof OffscreenCanvas !== 'undefined';
+function replaceExtension(fileName: string, newExtension: string): string {
+  const dotIndex = fileName.lastIndexOf('.');
+  const baseName = dotIndex === -1 ? fileName : fileName.slice(0, dotIndex);
+  return `${baseName}.${newExtension}`;
 }
 
-async function loadImageBitmap(file: File): Promise<ImageBitmap> {
-  try {
-    return await createImageBitmap(file);
-  } catch {
-    throw new Error('Impossibile leggere il file come immagine.');
-  }
-}
+type AnyCanvas = HTMLCanvasElement | OffscreenCanvas;
 
+// OffscreenCanvas è l'unica opzione disponibile dentro un vero Web Worker
+// (non c'è `document` in quel contesto). document.createElement('canvas') è
+// il fallback usato in ambiente di test jsdom, dove OffscreenCanvas non esiste.
 function createCanvas(width: number, height: number): AnyCanvas {
-  if (isWorkerEnvironment()) {
+  if (typeof OffscreenCanvas !== 'undefined') {
     return new OffscreenCanvas(width, height);
   }
   const canvas = document.createElement('canvas');
@@ -25,112 +27,137 @@ function createCanvas(width: number, height: number): AnyCanvas {
   return canvas;
 }
 
-function getContext2D(canvas: AnyCanvas): any {
-  return canvas.getContext('2d');
-}
-
-async function canvasToBlob(canvas: AnyCanvas, type: string, quality?: number): Promise<Blob | null> {
-  if (typeof OffscreenCanvas !== 'undefined' && canvas instanceof OffscreenCanvas) {
-    return canvas.convertToBlob({ type: type as any, quality });
+function canvasToBlob(canvas: AnyCanvas, mimeType: string, quality?: number): Promise<Blob> {
+  if ('convertToBlob' in canvas) {
+    return (canvas as OffscreenCanvas).convertToBlob({ type: mimeType, quality });
   }
-  return new Promise((resolve) => {
-    (canvas as HTMLCanvasElement).toBlob(resolve, type, quality);
+  return new Promise((resolve, reject) => {
+    (canvas as HTMLCanvasElement).toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Impossibile generare il file immagine.'));
+      },
+      mimeType,
+      quality
+    );
   });
 }
 
-function extensionForFormat(format: ImageFormat): string {
-  switch (format) {
-    case 'image/jpeg':
-      return 'jpg';
-    case 'image/png':
-      return 'png';
-    case 'image/webp':
-      return 'webp';
+async function drawBitmapToCanvas(
+  file: File,
+  width: number,
+  height: number
+): Promise<AnyCanvas> {
+  const bitmap = await createImageBitmap(file);
+  try {
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | null;
+    if (!ctx) {
+      throw new Error('Impossibile ottenere il contesto 2D del canvas.');
+    }
+    ctx.drawImage(bitmap as unknown as CanvasImageSource, 0, 0, width, height);
+    return canvas;
+  } finally {
+    bitmap.close?.();
   }
 }
 
 export async function convertImage(
   file: File,
-  targetFormat: ImageFormat,
-  quality: number = 0.92
+  targetMimeType: string,
+  quality = 0.92
 ): Promise<ConversionResult> {
   try {
-    const bitmap = await loadImageBitmap(file);
+    const bitmap = await createImageBitmap(file);
     const canvas = createCanvas(bitmap.width, bitmap.height);
-    const ctx = getContext2D(canvas);
-
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | null;
     if (!ctx) {
-      return { success: false, error: 'Impossibile creare il contesto di disegno.' };
+      throw new Error('Impossibile ottenere il contesto 2D del canvas.');
     }
+    ctx.drawImage(bitmap as unknown as CanvasImageSource, 0, 0, bitmap.width, bitmap.height);
+    bitmap.close?.();
 
-    if (targetFormat === 'image/jpeg') {
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
+    const blob = await canvasToBlob(
+      canvas,
+      targetMimeType,
+      targetMimeType === 'image/png' ? undefined : quality
+    );
+    const extension = EXTENSIONS[targetMimeType] ?? 'png';
 
-    ctx.drawImage(bitmap, 0, 0);
-
-    const blob = await canvasToBlob(canvas, targetFormat, quality);
-
-    if (!blob) {
-      return { success: false, error: 'La conversione non ha prodotto alcun output.' };
-    }
-
-    const baseName = file.name.replace(/\.[^/.]+$/, '');
     return {
       success: true,
       data: blob,
-      fileName: `${baseName}.${extensionForFormat(targetFormat)}`,
+      fileName: replaceExtension(file.name, extension),
     };
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Errore durante la conversione dell'immagine.",
+      error: error instanceof Error ? error.message : 'Errore durante la conversione del formato immagine.',
+    };
+  }
+}
+
+export async function compressImage(file: File, quality = 0.7): Promise<ConversionResult> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const canvas = createCanvas(bitmap.width, bitmap.height);
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D | null;
+    if (!ctx) {
+      throw new Error('Impossibile ottenere il contesto 2D del canvas.');
+    }
+    ctx.drawImage(bitmap as unknown as CanvasImageSource, 0, 0, bitmap.width, bitmap.height);
+    bitmap.close?.();
+
+    // Come per compressPdf: ricodifichiamo sempre in JPEG a qualità ridotta,
+    // che garantisce una riduzione di dimensione reale (a costo della
+    // trasparenza, se il file di partenza era PNG con canale alpha).
+    const blob = await canvasToBlob(canvas, 'image/jpeg', quality);
+
+    return {
+      success: true,
+      data: blob,
+      fileName: replaceExtension(file.name, 'jpg'),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Errore durante la compressione dell'immagine.",
     };
   }
 }
 
 export async function resizeImage(
   file: File,
-  maxWidth: number,
-  maxHeight: number
+  targetWidth: number,
+  targetHeight: number
 ): Promise<ConversionResult> {
   try {
-    const bitmap = await loadImageBitmap(file);
-
-    const ratio = Math.min(maxWidth / bitmap.width, maxHeight / bitmap.height, 1);
-    const width = Math.round(bitmap.width * ratio);
-    const height = Math.round(bitmap.height * ratio);
-
-    const canvas = createCanvas(width, height);
-    const ctx = getContext2D(canvas);
-
-    if (!ctx) {
-      return { success: false, error: 'Impossibile creare il contesto di disegno.' };
+    if (targetWidth <= 0 || targetHeight <= 0) {
+      return { success: false, error: 'Larghezza e altezza devono essere maggiori di zero.' };
     }
 
-    ctx.drawImage(bitmap, 0, 0, width, height);
+    const canvas = await drawBitmapToCanvas(file, targetWidth, targetHeight);
 
-    const originalFormat = (file.type || 'image/png') as ImageFormat;
-    const blob = await canvasToBlob(canvas, originalFormat);
+    const originalExtension = file.name.split('.').pop()?.toLowerCase() ?? 'png';
+    const targetMimeType =
+      originalExtension === 'jpg' || originalExtension === 'jpeg'
+        ? 'image/jpeg'
+        : originalExtension === 'webp'
+          ? 'image/webp'
+          : 'image/png';
 
-    if (!blob) {
-      return { success: false, error: 'Il ridimensionamento non ha prodotto alcun output.' };
-    }
+    const blob = await canvasToBlob(canvas, targetMimeType);
+    const extension = EXTENSIONS[targetMimeType] ?? 'png';
 
-    return { success: true, data: blob, fileName: file.name };
+    return {
+      success: true,
+      data: blob,
+      fileName: replaceExtension(file.name, `resized.${extension}`),
+    };
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Errore durante il ridimensionamento.',
+      error: error instanceof Error ? error.message : "Errore durante il ridimensionamento dell'immagine.",
     };
   }
-}
-
-export async function compressImage(
-  file: File,
-  quality: number = 0.7
-): Promise<ConversionResult> {
-  const format = (file.type === 'image/png' ? 'image/jpeg' : file.type) as ImageFormat;
-  return convertImage(file, format, quality);
 }
