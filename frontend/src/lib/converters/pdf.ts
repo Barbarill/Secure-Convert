@@ -133,3 +133,9 @@ export async function compressPdf(file: File): Promise<ConversionResult> {
     };
   }
 }
+
+export async function getPdfPageCount(file: File): Promise<number> {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await PDFDocument.load(arrayBuffer);
+  return pdf.getPageCount();
+}

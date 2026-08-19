@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 import { PDFDocument } from 'pdf-lib';
-import { mergePdfs, splitPdf, rotatePdf, compressPdf } from '../../src/lib/converters/pdf';
+import { mergePdfs, splitPdf, rotatePdf, compressPdf, getPdfPageCount } from '../../src/lib/converters/pdf';
 
 async function createTestPdfFile(pageCount: number, name: string): Promise<File> {
   const pdfDoc = await PDFDocument.create();
@@ -149,5 +149,21 @@ describe('compressPdf', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
+  });
+});
+
+describe('getPdfPageCount', () => {
+  it('restituisce il numero corretto di pagine di un PDF valido', async () => {
+    const file = await createTestPdfFile(7, 'source.pdf');
+
+    const count = await getPdfPageCount(file);
+
+    expect(count).toBe(7);
+  });
+
+  it('propaga un errore se il file non è un PDF valido', async () => {
+    const corruptFile = new File(['non è un pdf'], 'corrupt.pdf', { type: 'application/pdf' });
+
+    await expect(getPdfPageCount(corruptFile)).rejects.toThrow();
   });
 });
