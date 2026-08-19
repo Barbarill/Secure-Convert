@@ -19,20 +19,7 @@ export function SecurityBadge({ mode }: SecurityBadgeProps) {
   const content = BADGE_CONTENT[mode];
 
   return (
-    <div
-      data-testid="security-badge"
-      data-mode={mode}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '0.4rem',
-        fontSize: '0.8rem',
-        padding: '0.3rem 0.7rem',
-        borderRadius: '999px',
-        backgroundColor: mode === 'local' ? 'rgba(46, 139, 87, 0.1)' : 'rgba(216, 90, 48, 0.1)',
-        color: mode === 'local' ? '#2E8B57' : '#D85A30',
-      }}
-    >
+    <div data-testid="security-badge" data-mode={mode} className={`badge badge-${mode}`}>
       <span>{content.icon}</span>
       <span>{content.text}</span>
     </div>

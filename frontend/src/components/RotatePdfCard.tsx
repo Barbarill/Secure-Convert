@@ -36,16 +36,11 @@ export function RotatePdfCard() {
   }, [reset]);
 
   return (
-    <div
-      data-testid="rotate-pdf-card"
-      style={{ border: '1px solid #eee', borderRadius: '12px', padding: '1.5rem' }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <div data-testid="rotate-pdf-card" className="card">
+      <div className="card-header">
         <div>
-          <h3 style={{ margin: 0 }}>Ruota PDF</h3>
-          <p style={{ opacity: 0.7, marginTop: '0.25rem' }}>
-            Ruota tutte le pagine del PDF dei gradi che scegli.
-          </p>
+          <h3 className="card-title">Ruota PDF</h3>
+          <p className="card-description">Ruota tutte le pagine del PDF dei gradi che scegli.</p>
         </div>
         <SecurityBadge mode="local" />
       </div>
@@ -58,10 +53,12 @@ export function RotatePdfCard() {
 
       {file && status === 'idle' && (
         <div style={{ marginTop: '1rem' }}>
-          <p data-testid="rotate-selected-file">{file.name}</p>
+          <p data-testid="rotate-selected-file" className="card-description" style={{ marginBottom: '0.75rem' }}>
+            {file.name}
+          </p>
 
-          <fieldset style={{ border: 'none', padding: 0, margin: '0.75rem 0' }}>
-            <legend style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '0.5rem' }}>
+          <fieldset style={{ border: 'none', padding: 0, margin: '0 0 1rem' }}>
+            <legend className="dropzone-hint" style={{ marginBottom: '0.5rem' }}>
               Gradi di rotazione
             </legend>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -69,15 +66,7 @@ export function RotatePdfCard() {
                 <label
                   key={degreesOption}
                   data-testid={`rotate-degrees-${degreesOption}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    border: `1px solid ${degreesToRotate === degreesOption ? '#D85A30' : '#ddd'}`,
-                    borderRadius: '8px',
-                    padding: '0.4rem 0.75rem',
-                    cursor: 'pointer',
-                  }}
+                  className={`selectable-chip ${degreesToRotate === degreesOption ? 'is-selected' : ''}`}
                 >
                   <input
                     type="radio"
@@ -91,7 +80,7 @@ export function RotatePdfCard() {
             </div>
           </fieldset>
 
-          <button data-testid="rotate-convert-button" onClick={handleRotateClick}>
+          <button data-testid="rotate-convert-button" className="btn btn-primary" onClick={handleRotateClick}>
             Ruota
           </button>
         </div>
@@ -100,16 +89,16 @@ export function RotatePdfCard() {
       <ProgressIndicator status={status} errorMessage={error} />
 
       {status === 'success' && conversionResult?.success && (
-        <div style={{ marginTop: '1rem' }}>
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <RotateDownloadLink result={conversionResult} />
-          <button data-testid="rotate-start-over-button" onClick={handleStartOver} style={{ marginLeft: '1rem' }}>
+          <button data-testid="rotate-start-over-button" className="btn btn-secondary" onClick={handleStartOver}>
             Ruota un altro file
           </button>
         </div>
       )}
 
       {status === 'error' && (
-        <button data-testid="rotate-retry-button" onClick={handleStartOver} style={{ marginTop: '0.5rem' }}>
+        <button data-testid="rotate-retry-button" className="btn btn-secondary" onClick={handleStartOver} style={{ marginTop: '0.5rem' }}>
           Riprova
         </button>
       )}
@@ -117,9 +106,6 @@ export function RotatePdfCard() {
   );
 }
 
-// Componente separato per isolare la creazione/pulizia dell'URL blob dentro
-// il proprio useEffect, stesso pattern di ConversionCard e SplitPdfCard:
-// mai creare risorse esterne nel corpo del render.
 function RotateDownloadLink({ result }: { result: { data?: Blob; fileName?: string } }) {
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
@@ -136,7 +122,7 @@ function RotateDownloadLink({ result }: { result: { data?: Blob; fileName?: stri
   if (!downloadUrl) return null;
 
   return (
-    <a data-testid="rotate-download-link" href={downloadUrl} download={result.fileName}>
+    <a data-testid="rotate-download-link" className="btn btn-primary" href={downloadUrl} download={result.fileName}>
       Scarica {result.fileName}
     </a>
   );

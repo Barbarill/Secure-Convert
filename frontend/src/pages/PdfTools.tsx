@@ -20,9 +20,9 @@ export function PdfTools() {
   );
 
   return (
-    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '2rem 1rem' }}>
+    <div className="page-container">
       <h1>Strumenti PDF</h1>
-      <p style={{ opacity: 0.7 }}>
+      <p className="page-description">
         Tutte le operazioni qui sotto avvengono interamente nel tuo browser: nessun file viene
         caricato su un server.
       </p>

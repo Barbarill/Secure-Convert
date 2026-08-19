@@ -10,33 +10,25 @@ function App() {
 
   return (
     <div>
-      <nav
-        style={{
-          display: 'flex',
-          gap: '1rem',
-          justifyContent: 'center',
-          padding: '1rem',
-          borderBottom: '1px solid #eee',
-        }}
-      >
+      <nav className="nav-bar">
         <button
           data-testid="nav-pdf"
+          className={`nav-tab ${activeTab === 'pdf' ? 'is-active' : ''}`}
           onClick={() => setActiveTab('pdf')}
-          style={{ fontWeight: activeTab === 'pdf' ? 'bold' : 'normal' }}
         >
           PDF
         </button>
         <button
           data-testid="nav-image"
+          className={`nav-tab ${activeTab === 'image' ? 'is-active' : ''}`}
           onClick={() => setActiveTab('image')}
-          style={{ fontWeight: activeTab === 'image' ? 'bold' : 'normal' }}
         >
           Immagini
         </button>
         <button
           data-testid="nav-office"
+          className={`nav-tab ${activeTab === 'office' ? 'is-active' : ''}`}
           onClick={() => setActiveTab('office')}
-          style={{ fontWeight: activeTab === 'office' ? 'bold' : 'normal' }}
         >
           Office
         </button>

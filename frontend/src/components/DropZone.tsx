@@ -86,7 +86,6 @@ export function DropZone({
   const handleInputChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       handleFiles(event.target.files);
-      // Reset dell'input per permettere di selezionare di nuovo lo stesso file in futuro
       event.target.value = '';
     },
     [handleFiles]
@@ -98,6 +97,7 @@ export function DropZone({
         data-testid="dropzone"
         role="button"
         tabIndex={0}
+        className={`dropzone ${isDragging ? 'is-dragging' : ''}`}
         onClick={() => inputRef.current?.click()}
         onKeyDown={(event) => {
           if (event.key === 'Enter' || event.key === ' ') {
@@ -107,18 +107,9 @@ export function DropZone({
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        style={{
-          border: `2px dashed ${isDragging ? '#D85A30' : '#ccc'}`,
-          borderRadius: '12px',
-          padding: '2.5rem',
-          textAlign: 'center',
-          cursor: 'pointer',
-          backgroundColor: isDragging ? 'rgba(216, 90, 48, 0.05)' : 'transparent',
-          transition: 'all 0.15s ease',
-        }}
       >
         <p>Trascina qui il file, oppure clicca per selezionarlo</p>
-        <p style={{ fontSize: '0.85rem', opacity: 0.6 }}>
+        <p className="dropzone-hint">
           Formati accettati: {acceptedExtensions.join(', ')} · max {maxSizeMb}MB
         </p>
         <input
@@ -132,7 +123,7 @@ export function DropZone({
         />
       </div>
       {error && (
-        <p data-testid="dropzone-error" role="alert" style={{ color: '#c0392b', marginTop: '0.5rem' }}>
+        <p data-testid="dropzone-error" role="alert" className="alert-error" style={{ marginTop: '0.5rem' }}>
           {error}
         </p>
       )}

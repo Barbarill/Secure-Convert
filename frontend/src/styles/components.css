@@ -1,0 +1,194 @@
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: var(--spacing-lg);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.card-title {
+  font-size: var(--font-size-lg);
+}
+
+.card-description {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-xs);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 1.1rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-primary {
+  background-color: var(--color-accent);
+  color: #FFFFFF;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--color-accent-hover);
+}
+
+.btn-primary:disabled {
+  background-color: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-border-hover);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  padding: 0.3rem 0.7rem;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.badge-local {
+  background-color: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.badge-server {
+  background-color: var(--color-accent-subtle);
+  color: var(--color-accent);
+}
+
+.alert-error {
+  color: var(--color-error);
+  background-color: var(--color-error-subtle);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  margin: 0;
+}
+
+.selectable-chip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: border-color 0.15s ease;
+}
+
+.selectable-chip.is-selected {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.nav-bar {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.nav-tab {
+  background: none;
+  border: none;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  padding: 0.5rem 0.25rem;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-tab.is-active {
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  border-bottom-color: var(--color-accent);
+}
+
+.page-container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-md);
+}
+
+.page-description {
+  color: var(--color-text-muted);
+}
+.dropzone {
+  border: 2px dashed var(--color-border-hover);
+  border-radius: var(--radius-md);
+  padding: 2.5rem;
+  text-align: center;
+  cursor: pointer;
+  background-color: transparent;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.dropzone.is-dragging {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent-subtle);
+}
+
+.dropzone-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-xs);
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.progress-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.progress-indicator[data-status="error"] {
+  color: var(--color-error);
+}
+
+.progress-indicator[data-status="success"] {
+  color: var(--color-success);
+}

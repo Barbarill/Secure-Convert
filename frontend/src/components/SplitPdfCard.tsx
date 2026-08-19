@@ -6,8 +6,8 @@ import { usePdfConversion } from '../hooks/usePdfConversion';
 import { getPdfPageCount } from '../lib/converters/pdf';
 import type { ConversionResult } from '../lib/converters/types';
 
-// Raggruppa numeri di pagina selezionati in range contigui:
-// [1,2,3,5] -> [{start:1,end:3}, {start:5,end:5}]
+const EMPTY_RESULTS: ConversionResult[] = [];
+
 function buildRangesFromPages(pages: number[]): { start: number; end: number }[] {
   const sorted = [...pages].sort((a, b) => a - b);
   const ranges: { start: number; end: number }[] = [];
@@ -33,10 +33,7 @@ export function SplitPdfCard() {
   const [loadingPageCount, setLoadingPageCount] = useState(false);
   const [selectedPages, setSelectedPages] = useState<Set<number>>(new Set());
   const [downloadUrls, setDownloadUrls] = useState<{ url: string; fileName: string }[]>([]);
-  const EMPTY_RESULTS: ConversionResult[] = [];
 
-  // Il worker, per l'azione 'split', invia { type: 'result', results: ConversionResult[] }
-  // (plurale, a differenza delle altre azioni) — per questo non riusiamo ConversionCard.
   const results: ConversionResult[] = useMemo(
     () => (status === 'success' && result?.results ? result.results : EMPTY_RESULTS),
     [status, result]
@@ -102,8 +99,6 @@ export function SplitPdfCard() {
     setSelectedPages(new Set());
   }, [reset]);
 
-  // Stesso pattern usato in ConversionCard: creazione/pulizia degli URL blob
-  // interamente dentro un effetto, mai nel corpo del render.
   useEffect(() => {
     const successfulResults = results.filter((r) => r.success && r.data);
 
@@ -126,16 +121,11 @@ export function SplitPdfCard() {
   const failedResults = results.filter((r) => !r.success);
 
   return (
-    <div
-      data-testid="split-pdf-card"
-      style={{ border: '1px solid #eee', borderRadius: '12px', padding: '1.5rem' }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <div data-testid="split-pdf-card" className="card">
+      <div className="card-header">
         <div>
-          <h3 style={{ margin: 0 }}>Dividi PDF</h3>
-          <p style={{ opacity: 0.7, marginTop: '0.25rem' }}>
-            Seleziona le pagine da estrarre in uno o più nuovi file.
-          </p>
+          <h3 className="card-title">Dividi PDF</h3>
+          <p className="card-description">Seleziona le pagine da estrarre in uno o più nuovi file.</p>
         </div>
         <SecurityBadge mode="local" />
       </div>
@@ -150,10 +140,10 @@ export function SplitPdfCard() {
 
       {file && pageCountError && (
         <div style={{ marginTop: '1rem' }}>
-          <p role="alert" style={{ color: '#c0392b' }}>
+          <p role="alert" className="alert-error" style={{ marginBottom: '0.75rem' }}>
             {pageCountError}
           </p>
-          <button data-testid="split-retry-button" onClick={handleStartOver}>
+          <button data-testid="split-retry-button" className="btn btn-secondary" onClick={handleStartOver}>
             Riprova
           </button>
         </div>
@@ -161,15 +151,15 @@ export function SplitPdfCard() {
 
       {file && pageCount !== null && status === 'idle' && (
         <div style={{ marginTop: '1rem' }}>
-          <p data-testid="split-page-count">
+          <p data-testid="split-page-count" className="card-description" style={{ marginBottom: '0.75rem' }}>
             {file.name} · {pageCount} pagine
           </p>
 
-          <div style={{ marginBottom: '0.75rem' }}>
-            <button type="button" onClick={handleSelectAll} style={{ marginRight: '0.5rem' }}>
+          <div style={{ marginBottom: '0.75rem', display: 'flex', gap: '0.5rem' }}>
+            <button type="button" className="btn btn-secondary" onClick={handleSelectAll}>
               Seleziona tutte
             </button>
-            <button type="button" onClick={handleDeselectAll}>
+            <button type="button" className="btn btn-secondary" onClick={handleDeselectAll}>
               Deseleziona tutte
             </button>
           </div>
@@ -187,16 +177,8 @@ export function SplitPdfCard() {
               <label
                 key={page}
                 data-testid={`split-page-checkbox-${page}`}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  border: `1px solid ${selectedPages.has(page) ? '#D85A30' : '#ddd'}`,
-                  borderRadius: '8px',
-                  padding: '0.5rem',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                }}
+                className={`selectable-chip ${selectedPages.has(page) ? 'is-selected' : ''}`}
+                style={{ flexDirection: 'column', fontSize: '0.85rem' }}
               >
                 <input type="checkbox" checked={selectedPages.has(page)} onChange={() => togglePage(page)} />
                 {page}
@@ -206,6 +188,7 @@ export function SplitPdfCard() {
 
           <button
             data-testid="split-convert-button"
+            className="btn btn-primary"
             onClick={handleSplitClick}
             disabled={selectedPages.size === 0}
           >
@@ -221,19 +204,19 @@ export function SplitPdfCard() {
         <div style={{ marginTop: '1rem' }}>
           {downloadUrls.map(({ url, fileName }) => (
             <div key={fileName} style={{ marginBottom: '0.5rem' }}>
-              <a data-testid="split-download-link" href={url} download={fileName}>
+              <a data-testid="split-download-link" className="btn btn-primary" href={url} download={fileName}>
                 Scarica {fileName}
               </a>
             </div>
           ))}
 
           {failedResults.map((r, i) => (
-            <p key={i} role="alert" style={{ color: '#c0392b' }}>
+            <p key={i} role="alert" className="alert-error" style={{ marginBottom: '0.5rem' }}>
               {r.error}
             </p>
           ))}
 
-          <button data-testid="split-start-over-button" onClick={handleStartOver} style={{ marginTop: '0.5rem' }}>
+          <button data-testid="split-start-over-button" className="btn btn-secondary" onClick={handleStartOver} style={{ marginTop: '0.5rem' }}>
             Dividi un altro file
           </button>
         </div>

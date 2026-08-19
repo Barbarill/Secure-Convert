@@ -32,9 +32,9 @@ export function ImageTools() {
   );
 
   return (
-    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '2rem 1rem' }}>
+    <div className="page-container">
       <h1>Strumenti Immagini</h1>
-      <p style={{ opacity: 0.7 }}>
+      <p className="page-description">
         Tutte le operazioni qui sotto avvengono interamente nel tuo browser: nessun file viene
         caricato su un server.
       </p>
@@ -98,10 +98,6 @@ export function ImageTools() {
           reset={compress.reset}
         />
       </div>
-
-      {/* Ridimensionamento non ancora implementato: richiede input larghezza/altezza,
-          quindi (come per SplitPdfCard) un componente dedicato invece di ConversionCard.
-          Rimandato al prossimo mini-step. */}
     </div>
   );
 }

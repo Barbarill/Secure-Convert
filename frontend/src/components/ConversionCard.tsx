@@ -57,10 +57,6 @@ export function ConversionCard<TRequest>({
     setSelectedFiles([]);
   }, [reset]);
 
-  // Creazione/pulizia dell'URL del blob affidata esclusivamente a un effetto:
-  // il corpo del render deve restare puro, non deve creare risorse esterne.
-  // Con questo pattern, anche il doppio invoke degli effetti che React esegue
-  // in sviluppo (StrictMode) lascia comunque un URL valido al termine del ciclo.
   useEffect(() => {
     if (conversionResult?.success && conversionResult.data) {
       const url = URL.createObjectURL(conversionResult.data);
@@ -75,11 +71,11 @@ export function ConversionCard<TRequest>({
   }, [conversionResult]);
 
   return (
-    <div data-testid="conversion-card" style={{ border: '1px solid #eee', borderRadius: '12px', padding: '1.5rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+    <div data-testid="conversion-card" className="card">
+      <div className="card-header">
         <div>
-          <h3 style={{ margin: 0 }}>{title}</h3>
-          {description && <p style={{ opacity: 0.7, marginTop: '0.25rem' }}>{description}</p>}
+          <h3 className="card-title">{title}</h3>
+          {description && <p className="card-description">{description}</p>}
         </div>
         <SecurityBadge mode={securityMode} />
       </div>
@@ -97,12 +93,13 @@ export function ConversionCard<TRequest>({
 
       {selectedFiles.length > 0 && status !== 'success' && (
         <div style={{ marginTop: '1rem' }}>
-          <p data-testid="selected-files-summary">
+          <p data-testid="selected-files-summary" className="card-description" style={{ marginBottom: '0.75rem' }}>
             {selectedFiles.length} file selezionat{selectedFiles.length === 1 ? 'o' : 'i'}:{' '}
             {selectedFiles.map((f) => f.name).join(', ')}
           </p>
           <button
             data-testid="convert-button"
+            className="btn btn-primary"
             onClick={handleConvertClick}
             disabled={status === 'processing'}
           >
@@ -114,18 +111,18 @@ export function ConversionCard<TRequest>({
       <ProgressIndicator status={status} errorMessage={error} />
 
       {status === 'success' && conversionResult?.success && downloadUrl && (
-        <div style={{ marginTop: '1rem' }}>
-          <a data-testid="download-link" href={downloadUrl} download={conversionResult.fileName}>
+        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <a data-testid="download-link" className="btn btn-primary" href={downloadUrl} download={conversionResult.fileName}>
             Scarica {conversionResult.fileName}
           </a>
-          <button data-testid="start-over-button" onClick={handleStartOver} style={{ marginLeft: '1rem' }}>
+          <button data-testid="start-over-button" className="btn btn-secondary" onClick={handleStartOver}>
             Converti un altro file
           </button>
         </div>
       )}
 
       {status === 'error' && (
-        <button data-testid="retry-button" onClick={handleStartOver} style={{ marginTop: '0.5rem' }}>
+        <button data-testid="retry-button" className="btn btn-secondary" onClick={handleStartOver} style={{ marginTop: '0.5rem' }}>
           Riprova
         </button>
       )}

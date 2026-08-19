@@ -12,9 +12,9 @@ export function OfficeTools() {
   const buildRequest = useCallback((files: File[]): OfficeRequest => ({ file: files[0] }), []);
 
   return (
-    <div style={{ maxWidth: '640px', margin: '0 auto', padding: '2rem 1rem' }}>
+    <div className="page-container">
       <h1>Strumenti Office</h1>
-      <p style={{ opacity: 0.7 }}>
+      <p className="page-description">
         Word, PowerPoint ed Excel vengono convertiti in PDF su un server effimero: il file viene
         elaborato ed eliminato immediatamente dopo, senza mai essere salvato in modo permanente.
       </p>
