@@ -1,0 +1,13 @@
+services:
+  secureconvert-backend:
+    build:
+      context: ./backend
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+    # tmpfs monta /tmp in RAM: i file temporanei di conversione non toccano
+    # mai un disco persistente, nemmeno per la breve durata della richiesta.
+    tmpfs:
+      - /tmp
+    restart: unless-stopped

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { PdfTools } from './pages/PdfTools';
 import { ImageTools } from './pages/ImageTools';
+import { OfficeTools } from './pages/OfficeTools';
 
-type Tab = 'pdf' | 'image';
+type Tab = 'pdf' | 'image' | 'office';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('pdf');
@@ -32,9 +33,18 @@ function App() {
         >
           Immagini
         </button>
+        <button
+          data-testid="nav-office"
+          onClick={() => setActiveTab('office')}
+          style={{ fontWeight: activeTab === 'office' ? 'bold' : 'normal' }}
+        >
+          Office
+        </button>
       </nav>
 
-      {activeTab === 'pdf' ? <PdfTools /> : <ImageTools />}
+      {activeTab === 'pdf' && <PdfTools />}
+      {activeTab === 'image' && <ImageTools />}
+      {activeTab === 'office' && <OfficeTools />}
     </div>
   );
 }
